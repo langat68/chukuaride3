@@ -1,11 +1,11 @@
+// src/db/client.ts
+import 'dotenv/config' // ✅ This loads .env vars into process.env
 import { drizzle } from 'drizzle-orm/node-postgres'
 import { Pool } from 'pg'
+import * as schema from './schema.js' // Adjust if needed
 
 const pool = new Pool({
-  host: 'localhost',
-  port: 5432,
-  database: 'your_database',
-  user: 'your_user',
-  password: 'your_password',
+  connectionString: process.env.DATABASE_URL, // This will now be defined
 })
-const db = drizzle(pool)
+
+export const db = drizzle(pool, { schema })
