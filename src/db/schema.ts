@@ -83,7 +83,12 @@ export const payments = pgTable('payments', {
   paidAt: timestamp('paid_at').defaultNow(),
   refundAmount: decimal('refund_amount', { precision: 10, scale: 2 }),
   invoiceUrl: text('invoice_url'),
+  status: varchar('status', { length: 50 }).default('pending'),
+  receipt: varchar('receipt', { length: 100 }),
+  phone: varchar('phone', { length: 20 }),
+  checkoutRequestId: varchar('checkout_request_id', { length: 100 }), // <-- 🆕 add this!
 })
+
 
 // Feedback
 export const feedback = pgTable('feedback', {

@@ -9,16 +9,20 @@ export class PaymentController {
   initiatePayment = async (c: Context) => {
     const body = await c.req.json()
     const { phone, amount, rentalId } = body
+
     const res = await stkPush(phone, amount)
-    
-    // Optionally store this request with status "pending"
+
+    // Save with checkoutRequestId for later tracking
     await this.service.recordPayment({
       rentalId,
-      amount,
+      amount: amount.toString(), // Ensure correct type
       paymentProvider: 'mpesa',
-      invoiceUrl: '', // optional
+      invoiceUrl: '',
+      status: 'pending',
+      phone,
+      checkoutRequestId: res.CheckoutRequestID,
     })
-    
+
     return c.json({ success: true, mpesaResponse: res })
   }
 
@@ -34,19 +38,42 @@ export class PaymentController {
   }
 
   handleMpesaCallback = async (c: Context) => {
-    const body = await c.req.json()
-    const result = body?.Body?.stkCallback
-    
-    if (!result) return c.json({ error: 'Invalid callback body' }, 400)
-    
-    const status = result?.ResultCode === 0 ? 'success' : 'failed'
-    const metadata = result?.CallbackMetadata?.Item || []
-    
-    const amount = metadata.find((item: any) => item.Name === 'Amount')?.Value
-    const receipt = metadata.find((item: any) => item.Name === 'MpesaReceiptNumber')?.Value
-    const phone = metadata.find((item: any) => item.Name === 'PhoneNumber')?.Value
+    try {
+      const body = await c.req.json()
+      console.log('📥 M-Pesa Callback received:', JSON.stringify(body, null, 2))
 
-    
-    return c.json({ message: 'Callback received and processed' })
+      const result = body?.Body?.stkCallback
+      if (!result) {
+        console.warn('⚠️ Missing stkCallback')
+        return c.json({ error: 'Invalid callback body' }, 400)
+      }
+const checkoutRequestId = result.CheckoutRequestID
+const status = result?.ResultCode === 0 ? 'success' : 'failed'
+
+let amount: number | null = null
+let receipt: string | null = null
+let phone: string | null = null
+
+if (result.CallbackMetadata?.Item) {
+  const metadata = result.CallbackMetadata.Item
+  amount = metadata.find((item: any) => item.Name === 'Amount')?.Value ?? null
+  receipt = metadata.find((item: any) => item.Name === 'MpesaReceiptNumber')?.Value ?? null
+  phone = metadata.find((item: any) => item.Name === 'PhoneNumber')?.Value ?? null
+}
+
+
+      await this.service.updatePaymentStatus({
+        checkoutRequestId,
+        receipt: receipt?.toString() ?? null,
+        phone: phone?.toString() ?? null,
+        amount,
+        status,
+      })
+
+      return c.json({ message: 'Callback received and processed' })
+    } catch (error) {
+      console.error('❌ Error in handleMpesaCallback:', error)
+      return c.json({ error: 'Server error' }, 500)
+    }
   }
 }

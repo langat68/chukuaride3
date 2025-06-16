@@ -10,7 +10,7 @@ import rentalRouter from './Rentals/rentals.router.js'
 import supportRouter from './Requests/request.router.js'
 import feedbackRouter from './feedback/feedback.router.js'
 import paymentRouter from './Payments/payments.router.js'
-import authRouter from './Auth/auth.router.js' // ✅ NEW
+import authRouter from './Auth/auth.router.js' 
 
 const app = new Hono()
 
