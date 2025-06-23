@@ -8,7 +8,6 @@ const authRouter = new Hono()
 const service = new AuthService()
 const controller = new AuthController(service)
 
-// Apply validation using zValidator
 authRouter.post('/signup', zValidator('json', userSchema), controller.signup)
 authRouter.post('/login', zValidator('json', loginSchema), controller.login)
 

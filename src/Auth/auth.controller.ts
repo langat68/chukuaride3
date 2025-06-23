@@ -16,7 +16,6 @@ export class AuthController {
       // 2. Send welcome email
       try {
         const info = await sendWelcomeEmail(result.user.email, result.user.name ?? 'user')
-
         if (info.accepted.includes(result.user.email)) {
           console.log('✅ Welcome email sent to', result.user.email)
         } else {
@@ -41,8 +40,8 @@ export class AuthController {
   login = async (c: Context) => {
     try {
       const body = await c.req.json()
-      const token = await this.service.login(body)
-      return c.json({ message: 'Login successful', token })
+      const { user, token } = await this.service.login(body)
+      return c.json({ message: 'Login successful', token, user }) // ✅ include user in response
     } catch (error) {
       if (error instanceof Error) {
         return c.json({ error: error.message }, 401)

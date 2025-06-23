@@ -9,7 +9,7 @@ export const transporter = nodemailer.createTransport({
   },
 })
 
-// ✅ Explicitly return type so TypeScript knows it's not void
+// sending a message to the users email
 export const sendWelcomeEmail = async (
   to: string,
   name: string

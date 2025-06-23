@@ -108,3 +108,16 @@ export const supportRequests = pgTable('support_requests', {
   responded: boolean('responded').default(false),
   createdAt: timestamp('created_at').defaultNow(),
 })
+
+import { relations } from 'drizzle-orm'
+
+export const bookingsRelations = relations(bookings, ({ one }) => ({
+  car: one(cars, {
+    fields: [bookings.carId],
+    references: [cars.id],
+  }),
+  user: one(users, {
+    fields: [bookings.userId],
+    references: [users.id],
+  }),
+}))

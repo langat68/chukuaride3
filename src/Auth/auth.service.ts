@@ -51,16 +51,27 @@ export class AuthService {
   }
 
   // Login logic
-  async login({ email, password }: LoginInput) {
-    const [user] = await db.select().from(users).where(eq(users.email, email))
+  // Inside AuthService
 
-    if (!user) throw new Error('User not found')
+async login({ email, password }: LoginInput) {
+  const [user] = await db.select().from(users).where(eq(users.email, email))
+  if (!user) throw new Error('User not found')
 
-    const valid = await comparePassword(password, user.passwordHash)
-    if (!valid) throw new Error('Invalid credentials')
+  const valid = await comparePassword(password, user.passwordHash)
+  if (!valid) throw new Error('Invalid credentials')
 
-    const token = createToken({ id: user.id, role: user.role })
+  const token = createToken({ id: user.id, role: user.role })
 
-    return token
+  // return both token and partial user data (not passwordHash)
+  const safeUser = {
+    id: user.id,
+    email: user.email,
+    role: user.role,
+    name: user.name,
+    createdAt: user.createdAt,
   }
+
+  return { token, user: safeUser }
+}
+
 }
