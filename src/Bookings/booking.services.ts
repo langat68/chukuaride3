@@ -1,12 +1,36 @@
+// src/bookings/booking.service.ts
 import { db } from '../db/db.js'
-import { bookings } from '../db/schema.js'
+import { bookings, users, cars } from '../db/schema.js'
 import { eq } from 'drizzle-orm'
 
 export class BookingService {
   constructor(private dbInstance = db) {}
 
+  // ✅ Enriched getAll with car + user info
   getAll() {
-    return this.dbInstance.select().from(bookings)
+    return this.dbInstance
+      .select({
+        id: bookings.id,
+        pickupTime: bookings.pickupTime,
+        returnTime: bookings.returnTime,
+        priceEstimate: bookings.priceEstimate,
+        confirmed: bookings.confirmed,
+        createdAt: bookings.createdAt,
+        user: {
+          id: users.id,
+          name: users.name,
+          email: users.email,
+        },
+        car: {
+          id: cars.id,
+          make: cars.make,
+          model: cars.model,
+          location: cars.location,
+        },
+      })
+      .from(bookings)
+      .leftJoin(users, eq(bookings.userId, users.id))
+      .leftJoin(cars, eq(bookings.carId, cars.id))
   }
 
   getById(id: number) {
@@ -17,7 +41,7 @@ export class BookingService {
     return this.dbInstance.query.bookings.findMany({
       where: (b, { eq }) => eq(b.userId, userId),
       with: {
-        car: true, // 👈 Include car details
+        car: true, // 👈 Includes car info via Drizzle's relation
       },
     })
   }
