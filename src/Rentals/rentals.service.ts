@@ -1,7 +1,6 @@
-// src/rentals/rental.service.ts
 import { db } from '../db/db.js'
-import { rentals } from '../db/schema.js'
-import { eq } from 'drizzle-orm'
+import { rentals, bookings, users, cars } from '../db/schema.js'
+import { eq, sql } from 'drizzle-orm'
 
 export class RentalService {
   async createRental(data: typeof rentals.$inferInsert) {
@@ -9,8 +8,51 @@ export class RentalService {
     return result[0]
   }
 
+  // ✅ Get all rentals with enriched user + car info
   async getAllRentals() {
-    return db.select().from(rentals)
+    return db
+      .select({
+        id: rentals.id,
+        bookingId: rentals.bookingId,
+        status: rentals.status,
+        durationHours: rentals.durationHours,
+        totalCost: rentals.totalCost,
+        startedAt: rentals.startedAt,
+        endedAt: rentals.endedAt,
+        userName: sql<string>`users.name`.as('user_name'),
+        userEmail: sql<string>`users.email`.as('user_email'),
+        carMake: sql<string>`cars.make`.as('car_make'),
+        carModel: sql<string>`cars.model`.as('car_model'),
+        carLocation: sql<string>`cars.location`.as('car_location'),
+      })
+      .from(rentals)
+      .innerJoin(bookings, eq(rentals.bookingId, bookings.id))
+      .innerJoin(users, eq(bookings.userId, users.id))
+      .innerJoin(cars, eq(bookings.carId, cars.id))
+  }
+
+  // ✅ Get rentals by user ID (joined with related booking, user, and car info)
+  async getRentalsByUserId(userId: number) {
+    return db
+      .select({
+        id: rentals.id,
+        bookingId: rentals.bookingId,
+        status: rentals.status,
+        durationHours: rentals.durationHours,
+        totalCost: rentals.totalCost,
+        startedAt: rentals.startedAt,
+        endedAt: rentals.endedAt,
+        userName: sql<string>`users.name`.as('user_name'),
+        userEmail: sql<string>`users.email`.as('user_email'),
+        carMake: sql<string>`cars.make`.as('car_make'),
+        carModel: sql<string>`cars.model`.as('car_model'),
+        carLocation: sql<string>`cars.location`.as('car_location'),
+      })
+      .from(rentals)
+      .innerJoin(bookings, eq(rentals.bookingId, bookings.id))
+      .innerJoin(users, eq(bookings.userId, users.id))
+      .innerJoin(cars, eq(bookings.carId, cars.id))
+      .where(eq(bookings.userId, userId))
   }
 
   async getRentalById(id: number) {

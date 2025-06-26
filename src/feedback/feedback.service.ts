@@ -1,4 +1,3 @@
-// src/feedback/feedback.service.ts
 import { db } from '../db/db.js'
 import { feedback } from '../db/schema.js'
 import { eq } from 'drizzle-orm'
@@ -29,5 +28,9 @@ export class FeedbackService {
 
   async delete(id: number) {
     return db.delete(feedback).where(eq(feedback.id, id))
+  }
+
+  async getFeedbackByUserId(userId: number) {
+    return db.select().from(feedback).where(eq(feedback.userId, userId))
   }
 }

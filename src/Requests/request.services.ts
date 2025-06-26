@@ -1,4 +1,4 @@
-// src/requests/support.service.ts
+// src/Requests/request.services.ts
 import { db } from '../db/db.js'
 import { supportRequests } from '../db/schema.js'
 import { eq } from 'drizzle-orm'
@@ -16,6 +16,13 @@ export class SupportService {
   async getById(id: number) {
     const result = await db.select().from(supportRequests).where(eq(supportRequests.id, id))
     return result[0]
+  }
+
+  async getByUserId(userId: number) {
+    return db
+      .select()
+      .from(supportRequests)
+      .where(eq(supportRequests.userId, userId))
   }
 
   async update(id: number, data: Partial<typeof supportRequests.$inferInsert>) {

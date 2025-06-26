@@ -1,5 +1,6 @@
+// src/Payments/payments.service.ts
 import { db } from '../db/db.js'
-import { payments } from '../db/schema.js'
+import { payments, rentals, bookings, users, cars } from '../db/schema.js'
 import { eq } from 'drizzle-orm'
 
 export class PaymentService {
@@ -9,7 +10,29 @@ export class PaymentService {
   }
 
   async getAll() {
-    return db.select().from(payments)
+    return db
+      .select({
+        id: payments.id,
+        paymentProvider: payments.paymentProvider,
+        amount: payments.amount,
+        paidAt: payments.paidAt,
+        refundAmount: payments.refundAmount,
+        invoiceUrl: payments.invoiceUrl,
+        status: payments.status,
+        receipt: payments.receipt,
+        phone: payments.phone,
+        checkoutRequestId: payments.checkoutRequestId,
+        userName: users.name,
+        userEmail: users.email,
+        carMake: cars.make,
+        carModel: cars.model,
+        carLocation: cars.location,
+      })
+      .from(payments)
+      .innerJoin(rentals, eq(payments.rentalId, rentals.id))
+      .innerJoin(bookings, eq(rentals.bookingId, bookings.id))
+      .innerJoin(users, eq(bookings.userId, users.id))
+      .innerJoin(cars, eq(bookings.carId, cars.id))
   }
 
   async getById(id: number) {
@@ -45,5 +68,20 @@ export class PaymentService {
         paidAt: new Date(),
       })
       .where(eq(payments.checkoutRequestId, checkoutRequestId))
+  }
+
+  async getPaymentsByUserId(userId: number) {
+    return db
+      .select({
+        id: payments.id,
+        rentalId: payments.rentalId,
+        amount: payments.amount,
+        status: payments.status,
+        paidAt: payments.paidAt,
+      })
+      .from(payments)
+      .innerJoin(rentals, eq(payments.rentalId, rentals.id))
+      .innerJoin(bookings, eq(rentals.bookingId, bookings.id))
+      .where(eq(bookings.userId, userId))
   }
 }
