@@ -62,4 +62,30 @@ export class CarService {
   async deleteCar(id: number) {
     return db.delete(cars).where(eq(cars.id, id))
   }
+
+  // Add to car.service.ts
+
+async getAvailableCars() {
+  return db
+    .select({
+      id: cars.id,
+      make: cars.make,
+      model: cars.model,
+      carName: sql<string>`${cars.make} || ' ' || ${cars.model}`.as('carName'),
+      year: cars.year,
+      category: cars.category,
+      pricePerHour: cars.pricePerHour,
+      pricePerDay: cars.pricePerDay,
+      fuel: cars.fuel,
+      transmission: cars.transmission,
+      capacity: cars.capacity,
+      availability: cars.availability,
+      location: cars.location,
+      createdBy: cars.createdBy,
+      createdAt: cars.createdAt,
+    })
+    .from(cars)
+    .where(eq(cars.availability, true)) // Only fetch available cars
+}
+
 }

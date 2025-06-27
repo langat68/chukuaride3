@@ -1,14 +1,42 @@
+// ✅ rentals.service.ts
 import { db } from '../db/db.js'
 import { rentals, bookings, users, cars } from '../db/schema.js'
 import { eq, sql } from 'drizzle-orm'
 
 export class RentalService {
-  async createRental(data: typeof rentals.$inferInsert) {
-    const result = await db.insert(rentals).values(data).returning()
-    return result[0]
+  async createRental(data: {
+    userId: number
+    carId: number
+    pickupTime: string
+    returnTime: string
+    totalCost: string
+  }) {
+    // 1. Create a booking
+    const [booking] = await db
+      .insert(bookings)
+      .values({
+        userId: data.userId,
+        carId: data.carId,
+        pickupTime: new Date(data.pickupTime),
+        returnTime: new Date(data.returnTime),
+        priceEstimate: data.totalCost,
+        confirmed: true
+      })
+      .returning({ id: bookings.id })
+
+    // 2. Create the rental
+    const [rental] = await db
+      .insert(rentals)
+      .values({
+        bookingId: booking.id,
+        totalCost: data.totalCost,
+        status: 'booked'
+      })
+      .returning()
+
+    return rental
   }
 
-  // ✅ Get all rentals with enriched user + car info
   async getAllRentals() {
     return db
       .select({
@@ -31,7 +59,6 @@ export class RentalService {
       .innerJoin(cars, eq(bookings.carId, cars.id))
   }
 
-  // ✅ Get rentals by user ID (joined with related booking, user, and car info)
   async getRentalsByUserId(userId: number) {
     return db
       .select({

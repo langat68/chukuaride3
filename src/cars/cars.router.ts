@@ -1,4 +1,3 @@
-
 import { Hono } from 'hono'
 import { zValidator } from '@hono/zod-validator'
 import { carSchema } from '../validator.js' 
@@ -11,12 +10,10 @@ const carService = new CarService()
 const carController = new CarController(carService)
 
 carRouter.get('/', carController.getAll)
+carRouter.get('/available', carController.getAvailable) // ✅ here
 carRouter.get('/:id', carController.getById)
-
-// ✅ Zod validation to POST and PUT
 carRouter.post('/', zValidator('json', carSchema), carController.create)
 carRouter.put('/:id', zValidator('json', carSchema), carController.update)
-
 carRouter.delete('/:id', carController.delete)
 
 export default carRouter

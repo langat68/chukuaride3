@@ -40,12 +40,20 @@ export const bookingSchema = z.object({
   confirmed: z.boolean().optional()
 })
 
-// Rentals
-export const rentalSchema = z.object({
+// ✅ Rentals – for creation (from frontend)
+export const createRentalSchema = z.object({
+  userId: z.number().int().positive(),
+  carId: z.number().int().positive(),
+  pickupTime: z.string().datetime(),
+  returnTime: z.string().datetime(),
+  totalCost: z.string()
+})
+
+// ✅ Rentals – full object (for internal use or response shape)
+export const rentalSchema = createRentalSchema.extend({
   bookingId: z.number().int().positive(),
   status: z.enum(['booked', 'ongoing', 'completed', 'cancelled']).optional(),
   durationHours: z.number().int().optional(),
-  totalCost: z.string().optional(),
   startedAt: z.string().datetime().optional(),
   endedAt: z.string().datetime().optional()
 })

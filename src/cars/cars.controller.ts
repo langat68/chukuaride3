@@ -1,4 +1,3 @@
-// src/cars/car.controller.ts
 import type { Context } from 'hono'
 import { CarService } from './cars.service.js'
 
@@ -7,6 +6,11 @@ export class CarController {
 
   getAll = async (c: Context) => {
     const result = await this.carService.getAllCars()
+    return c.json(result)
+  }
+
+  getAvailable = async (c: Context) => {
+    const result = await this.carService.getAvailableCars()
     return c.json(result)
   }
 

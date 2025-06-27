@@ -18,7 +18,7 @@ export async function getAccessToken() {
   return res.data.access_token
 }
 
-export async function stkPush(phone: string, amount: number, accountRef = 'CHUKUARIDE') {
+export async function stkPush(phone: string, amount: number | string, accountRef = 'CHUKUARIDE') {
   const token = await getAccessToken()
   const timestamp = new Date().toISOString().replace(/[^0-9]/g, '').slice(0, 14)
   const password = Buffer.from(config.shortCode + config.passkey + timestamp).toString('base64')
@@ -28,7 +28,7 @@ export async function stkPush(phone: string, amount: number, accountRef = 'CHUKU
     Password: password,
     Timestamp: timestamp,
     TransactionType: 'CustomerPayBillOnline',
-    Amount: amount,
+    Amount: Math.floor(Number(amount)), // ✅ Must be an integer
     PartyA: phone,
     PartyB: config.shortCode,
     PhoneNumber: phone,
