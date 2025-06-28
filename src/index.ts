@@ -19,22 +19,23 @@ const app = new Hono()
 app.use('*', logger())
 
 app.use('*', cors({
-  origin: (origin) => {
-    if (!origin) return false
+  origin: (origin, c) => {
+    if (!origin) return undefined
 
-    // Allow localhost during development
+    // Allow localhost
     if (
       origin === 'http://localhost:5173' ||
       origin === 'http://localhost:3000'
-    ) return true
+    ) return origin
 
-    // Allow production base domain
-    if (origin === 'https://frontend-chukuaride-v2.vercel.app') return true
+    // Allow main deployed frontend
+    if (origin === 'https://frontend-chukuaride-v2.vercel.app') return origin
 
-    // Allow Vercel preview deployments
-    if (origin.endsWith('.vercel.app')) return true
+    // Allow all *.vercel.app preview deployments
+    if (origin.endsWith('.vercel.app')) return origin
 
-    return false
+    // Reject others
+    return undefined
   },
   allowHeaders: ['Content-Type', 'Authorization'],
   allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
